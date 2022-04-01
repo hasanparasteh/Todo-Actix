@@ -1,5 +1,4 @@
-
-use diesel::{insert_into, OptionalExtension};
+use diesel::{insert_into, OptionalExtension, delete,ExpressionMethods};
 use diesel::{QueryDsl, RunQueryDsl, result::Error};
 use crate::schema::todos::dsl::*;
 use crate::{establish_connection, models::Todo};
@@ -25,5 +24,14 @@ pub fn insert_todo(req_todo: &Todo) -> Result<usize, Error>
     
     insert_into(todos)
         .values(req_todo)
+        .execute(&connection)
+}
+
+pub fn remove_todo(req_id: i32) -> Result<usize, Error>
+{
+    let connection = establish_connection();
+
+    delete(todos)
+        .filter(id.eq(req_id))
         .execute(&connection)
 }

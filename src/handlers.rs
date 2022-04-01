@@ -1,5 +1,5 @@
-use crate::{models::{Todo}, service::{get_todo, get_todos, insert_todo}};
-use actix_web::{Responder, web, get, HttpResponse, post};
+use crate::{models::{Todo}, service::{get_todo, get_todos, insert_todo, remove_todo}};
+use actix_web::{Responder, web, get, HttpResponse, post, delete};
 use serde_json::json;
 
 #[get("/sample")]
@@ -70,16 +70,37 @@ pub async fn todo_item(path: web::Path<i32>) -> impl Responder {
 
 #[post("/todos")]
 pub async fn todo_add(req_todo: web::Json<Todo>) -> impl Responder {
+    let req_todo: Todo = req_todo.into_inner();
     let affected_rows = insert_todo(&req_todo);
 
     match affected_rows {
         Ok(_affected_rows) => {
             HttpResponse::Created().json(req_todo)
         },
-        _ => {
+        Err(affected_rows) => {
             HttpResponse::InternalServerError().json(json!({
                 "result": false,
-                "message": "Database is down"
+                "message": affected_rows.to_string(),
+            }))
+        }
+    }
+}
+
+#[delete("/todos/{id}")]
+pub async fn todo_remove(path: web::Path<i32>) -> impl Responder {
+    let req_id = path.into_inner();
+    let affected_rows = remove_todo(req_id);
+
+    match affected_rows {
+        Ok(_affected_rows)=> {
+            HttpResponse::Ok().json(json!({
+                "result": true
+            }))
+        },
+        Err(affected_rows) => {
+            HttpResponse::InternalServerError().json(json!({
+                "result": false,
+                "message": affected_rows.to_string()
             }))
         }
     }

@@ -3,19 +3,20 @@
 extern crate diesel;
 extern crate dotenv;
 
-pub mod schema;
-pub mod models;
-
-pub mod service;
-pub mod handlers;
-
 use actix_web::{App, HttpServer};
-use crate::handlers::{root, greet, todo_list, todo_item, todo_add};
+use crate::handlers::{root, greet, todo_list, todo_item, todo_add, todo_remove};
 
 use diesel::mysql::MysqlConnection;
 use diesel::prelude::*;
 use dotenv::dotenv;
 use std::env;
+
+
+pub mod schema;
+pub mod models;
+
+pub mod service;
+pub mod handlers;
 
 pub fn establish_connection() -> MysqlConnection {
     dotenv().ok();
@@ -37,6 +38,7 @@ async fn main() -> std::io::Result<()> {
             .service(todo_list)
             .service(todo_item)
             .service(todo_add)
+            .service(todo_remove)
     })
     .bind(("127.0.0.1", 8000))?
     .run()
