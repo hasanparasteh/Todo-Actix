@@ -1,5 +1,6 @@
-use crate::{models::{Todo}, service::{get_todo, get_todos, insert_todo, remove_todo}};
-use actix_web::{Responder, web, get, HttpResponse, post, delete};
+use crate::{models::{Todo, TodoUpdate}, service::{get_todo, get_todos, insert_todo, remove_todo, update_todo}};
+use actix_web::{Responder, web, get, HttpResponse, post, delete, put};
+use diesel::result::Error::NotFound;
 use serde_json::json;
 
 #[get("/sample")]
@@ -50,12 +51,18 @@ pub async fn todo_item(path: web::Path<i32>) -> impl Responder {
 
     match fetched_todos {
         Ok(fetched_todos) => {
-            HttpResponse::Created().json(json!({
-                "result": true,
-                "todo": fetched_todos
-            }))
+            if fetched_todos.is_none() {
+                HttpResponse::NotFound().json(json!({
+                    "result": false,
+                }))
+            }else{
+                HttpResponse::Ok().json(json!({
+                    "result": true,
+                    "todo": fetched_todos
+                }))
+            } 
         },
-        Err(diesel::NotFound) => {
+        Err(NotFound) => {
              HttpResponse::NotFound().json(json!({
                  "result": false
              }))
@@ -101,6 +108,35 @@ pub async fn todo_remove(path: web::Path<i32>) -> impl Responder {
             HttpResponse::InternalServerError().json(json!({
                 "result": false,
                 "message": affected_rows.to_string()
+            }))
+        }
+    }
+}
+
+#[put("/todos/{id}")]
+pub async fn todo_update_title(path: web::Path<i32>, body: web::Json<TodoUpdate>) -> impl Responder{
+    let id = path.into_inner();
+    let update_payload = body.into_inner();
+
+    let affected_rows = update_todo(id, update_payload);
+
+    match affected_rows {
+        Ok(_affected_rows) => {
+             HttpResponse::Ok().json(json!({
+                "result": true
+            }))
+        },
+        Err(NotFound) => {
+            HttpResponse::NotFound().json(json!({
+                "result": false,
+                "message": "Id Not Found".to_string()
+            }))
+        },
+        Err(_)=>{
+            HttpResponse::InternalServerError().json(json!({
+                "result": false,
+                "message": "Something went wrong...".to_string()
+
             }))
         }
     }

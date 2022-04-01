@@ -4,7 +4,7 @@ extern crate diesel;
 extern crate dotenv;
 
 use actix_web::{App, HttpServer};
-use crate::handlers::{root, greet, todo_list, todo_item, todo_add, todo_remove};
+use crate::handlers::{root, greet, todo_list, todo_item, todo_add, todo_remove, todo_update_title};
 
 use diesel::mysql::MysqlConnection;
 use diesel::prelude::*;
@@ -39,6 +39,7 @@ async fn main() -> std::io::Result<()> {
             .service(todo_item)
             .service(todo_add)
             .service(todo_remove)
+            .service(todo_update_title)
     })
     .bind(("127.0.0.1", 8000))?
     .run()
