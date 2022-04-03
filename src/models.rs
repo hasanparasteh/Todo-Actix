@@ -14,7 +14,8 @@ pub struct Todo {
     pub is_schedule: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, AsChangeset)]
+#[table_name="todos"]
 pub struct  TodoUpdate {
     pub title: Option<String>,
     pub status: Option<String>

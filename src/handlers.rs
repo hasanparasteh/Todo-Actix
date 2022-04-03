@@ -118,6 +118,26 @@ pub async fn todo_update_title(path: web::Path<i32>, body: web::Json<TodoUpdate>
     let id = path.into_inner();
     let update_payload = body.into_inner();
 
+    match update_payload.title {
+        Some(ref title_req) => if title_req.len() < 3 {
+            return HttpResponse::BadRequest().json(json!({
+                "result": false,
+                "message": "Title should be at least 3 letter"
+            }));
+        },
+        None => (),
+    };
+
+    match update_payload.status {
+        Some(ref status_req) => if status_req.len() < 3 {
+            return HttpResponse::BadRequest().json(json!({
+                "result": false,
+                "message": "Status should be at least 3 letter"
+            }));
+        },
+        None => (),
+    };
+
     let affected_rows = update_todo(id, update_payload);
 
     match affected_rows {
